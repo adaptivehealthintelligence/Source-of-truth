@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "src-of-truth"
+version = "0.1.0"
+description = ""
+authors = ["Todd Cooper <todd.coops@gmail.com>"]
+readme = "README.md"
+packages = [{include = "src_of_truth"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+neo4j = "^5.23.1"
+pandas = "^2.2.3"
+openpyxl = "^3.1.5"
+
+
+[tool.poetry.group.dev.dependencies]
+ipython = "^8.14.0"
+black = "^23.7.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
