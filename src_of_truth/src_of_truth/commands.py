@@ -99,10 +99,6 @@ class CommandExecutor:
         print(f"Loading data from {excel_fn}")
         df = import_excel(excel_fn)
         cypher_str = df_to_cypher(df, "Person", id_field="ID")
-        # print("====================")
-        # print(cypher_str)
-        # print("====================")
-        self.del_all()
         nodes = self.__run_query(cypher_str)
         self.__print_results(nodes)
 
