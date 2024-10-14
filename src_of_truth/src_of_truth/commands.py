@@ -1,4 +1,5 @@
-from src_of_truth.neo4j_connection import Neo4jConnection
+from src_of_truth.neo4j import Neo4jConnection, get_connection
+from typing import Optional
 from src_of_truth.excel_utils import import_excel, df_to_cypher
 import inspect
 from .excel_utils import import_excel
@@ -7,21 +8,12 @@ from .excel_utils import import_excel
 class CommandExecutor:
 
     # region private
-    def __init__(self, connection: Neo4jConnection, command: str, *args):
-        self.__connection = connection
-        self.command = command
-        self.args = args
-        self.result = self.__run_command()
+    def __init__(self, connection: Optional[Neo4jConnection]):
+        self.__connection = connection if connection else get_connection()
 
     def __get_cmds(self, cmd_name=""):
         l = inspect.getmembers(self, predicate=inspect.ismethod)
         return [x for x in l if not x[0].startswith("_") and x[0].find(cmd_name) != -1]
-
-    def __get_arg(self, index, default=None):
-        try:
-            return self.args[index]
-        except IndexError:
-            return default
 
     def __run_query(self, qry):
         return self.__connection.query(qry)
@@ -70,45 +62,40 @@ class CommandExecutor:
         """Delete everything in the database."""
         self.__run_query("MATCH (n) DETACH DELETE n")
 
-    def exe_file_query(self):
+    def exe_file(self, filename: str):
         """Execute the commands in the <file> specified."""
-        fn = self.args[0]
         qry_str = None
-        with open(fn, "r") as file:
+        with open(filename, "r") as file:
             qry_str = file.read()
-        print(f"Run query file={fn}")
+        print(f"Run query file={filename}")
         nodes = self.__run_query(qry_str)
         self.__print_results(nodes)
 
-    def exe_str(self):
+    def exe_str(self, query: str):
         """Execute the query in the 2nd parameter."""
-        query = self.args[0]
         print(f"Run {query=}")
         nodes = self.__run_query(query)
         self.__print_results(nodes)
 
-    def get_nodes_with_label(self):
+    def get_with_label(self, label: str):
         """Get all nodes for a <label>, like a table."""
-        label = self.args[0]
         nodes = self.__run_query(f"match (n) where n:{label} return n;")
         self.__print_results(nodes)
 
-    def load_excel(self):
+    def load_excel(self, excel_fn: str):
         """Load the data from an excel sheet."""
-        excel_fn: str = self.args[0]
         print(f"Loading data from {excel_fn}")
         df = import_excel(excel_fn)
         cypher_str = df_to_cypher(df, "Person", id_field="ID")
         nodes = self.__run_query(cypher_str)
         self.__print_results(nodes)
 
-    def help(self):
+    def help_dep(self, command: str = ""):
         """Get the description for the <command>."""
 
         def display_help(cmd):
             print(f"{cmd[0]}:\t{cmd[1].__doc__}")
 
-        command = self.__get_arg(0, "")
         for cmd in self.__get_cmds(command):
             display_help(cmd)
 

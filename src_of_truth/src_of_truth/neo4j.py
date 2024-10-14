@@ -66,6 +66,7 @@ class Neo4jConnection:
             response = list(session.run(query, parameters))
         except Exception as e:
             print("Query failed:", e)
+            raise e
         finally:
             if session is not None:
                 session.close()
@@ -73,3 +74,14 @@ class Neo4jConnection:
 
     def verify_connectivity(self) -> None:
         self.__driver.verify_connectivity()
+
+
+def get_connection():
+    # for now the connection is hard coded here
+    URI = "bolt://localhost:7687"  # "neo4j://localhost:7474"
+    AUTH = ("neo4j", "Blah1234!")  #
+    database = "test-load"
+    neo4j_home = "/Users/tcoo5239/Library/Application Support/Neo4j Desktop/Application/relate-data/dbmss/dbms-7e2ec58e-7220-4352-9df2-c55e056a8288"
+    return Neo4jConnection(
+        URI, AUTH[0], AUTH[1], database=database, home_dir=neo4j_home
+    )
